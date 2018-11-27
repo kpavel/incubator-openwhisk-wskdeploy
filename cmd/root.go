@@ -252,6 +252,12 @@ func Deploy(cmd *cobra.Command) error {
 		err = deployer.Deploy()
 		if err != nil {
 			return err
+		}
+
+		// Invoke post deploy actions and/or triggers
+		err = deployer.PostDeploy()
+		if err != nil {
+			return err
 		} else {
 			return nil
 		}
@@ -357,6 +363,12 @@ func Undeploy(cmd *cobra.Command) error {
 		}
 
 		err = deployer.UnDeploy(verifiedPlan)
+		if err != nil {
+			return err
+		}
+
+		// Invoke post undeploy actions and/or triggers
+		err = deployer.PostUnDeploy()
 		if err != nil {
 			return err
 		} else {

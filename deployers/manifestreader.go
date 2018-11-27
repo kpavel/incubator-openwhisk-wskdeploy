@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"fmt"
+
 	"github.com/apache/incubator-openwhisk-client-go/whisk"
 	"github.com/apache/incubator-openwhisk-wskdeploy/dependencies"
 	"github.com/apache/incubator-openwhisk-wskdeploy/parsers"
@@ -113,6 +114,11 @@ func (reader *ManifestReader) HandleYaml(manifestParser *parsers.YAMLParser, man
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
 	}
 
+	pdep_actions, pundep_actions, err := manifestParser.ComposePostDeployActions(reader.serviceDeployer.Client, manifest)
+	if err != nil {
+		return wskderrors.NewYAMLFileFormatError(manifestName, err)
+	}
+
 	err = reader.SetDependencies(deps)
 	if err != nil {
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
@@ -139,6 +145,11 @@ func (reader *ManifestReader) HandleYaml(manifestParser *parsers.YAMLParser, man
 	}
 
 	err = reader.SetApis(apis, responses)
+	if err != nil {
+		return wskderrors.NewYAMLFileFormatError(manifestName, err)
+	}
+
+	err = reader.SetPostActions(pdep_actions, pundep_actions)
 	if err != nil {
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
 	}
@@ -318,6 +329,18 @@ func (reader *ManifestReader) SetApis(ar []*whisk.ApiCreateRequest, responses ma
 	for apiPath, response := range responses {
 		dep.Deployment.ApiOptions[apiPath] = response
 	}
+
+	return nil
+}
+
+func (reader *ManifestReader) SetPostActions(postDeploy map[string]interface{}, postUndeploy map[string]interface{}) error {
+	dep := reader.serviceDeployer
+
+	dep.mt.Lock()
+	defer dep.mt.Unlock()
+
+	dep.Deployment.PostDeployActions = postDeploy
+	dep.Deployment.PostUnDeployActions = postUndeploy
 
 	return nil
 }

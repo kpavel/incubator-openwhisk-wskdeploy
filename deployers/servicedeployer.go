@@ -45,11 +45,13 @@ const (
 )
 
 type DeploymentProject struct {
-	Packages   map[string]*DeploymentPackage
-	Triggers   map[string]*whisk.Trigger
-	Rules      map[string]*whisk.Rule
-	Apis       map[string]*whisk.ApiCreateRequest
-	ApiOptions map[string]*whisk.ApiCreateRequestOptions
+	Packages            map[string]*DeploymentPackage
+	Triggers            map[string]*whisk.Trigger
+	Rules               map[string]*whisk.Rule
+	Apis                map[string]*whisk.ApiCreateRequest
+	ApiOptions          map[string]*whisk.ApiCreateRequestOptions
+	PostDeployActions   map[string]interface{}
+	PostUnDeployActions map[string]interface{}
 }
 
 func NewDeploymentProject() *DeploymentProject {
@@ -318,6 +320,66 @@ func (deployer *ServiceDeployer) Deploy() error {
 
 }
 
+func (deployer *ServiceDeployer) PostDeploy() error {
+	// iterate over all actions in postdeploy section
+	//
+
+	for actionPath, postDeployActionInputs := range deployer.Deployment.PostDeployActions {
+		fmt.Println("----1----")
+		fmt.Println(actionPath)
+		fmt.Println("----2----")
+		fmt.Println(postDeployActionInputs)
+		fmt.Println("----3----")
+
+		qName, err := utils.ParseQualifiedName(actionPath, deployer.ClientConfig.Namespace)
+		if err != nil {
+			return err
+		}
+
+		namespace := deployer.Client.Namespace
+		deployer.Client.Namespace = qName.Namespace
+
+		_, response, err := deployer.Client.Actions.Invoke(qName.EntityName, postDeployActionInputs, true, false)
+		fmt.Println(response)
+		if err != nil {
+			return err
+		}
+		deployer.Client.Namespace = namespace
+	}
+
+	return nil
+}
+
+func (deployer *ServiceDeployer) PostUnDeploy() error {
+	// iterate over all actions in postdeploy section
+	//
+
+	for actionPath, postUnDeployInputs := range deployer.Deployment.PostUnDeployActions {
+		fmt.Println("----1----")
+		fmt.Println(actionPath)
+		fmt.Println("----2----")
+		fmt.Println(postUnDeployInputs)
+		fmt.Println("----3----")
+
+		qName, err := utils.ParseQualifiedName(actionPath, deployer.ClientConfig.Namespace)
+		if err != nil {
+			return err
+		}
+
+		namespace := deployer.Client.Namespace
+		deployer.Client.Namespace = qName.Namespace
+
+		_, response, err := deployer.Client.Actions.Invoke(qName.EntityName, postUnDeployInputs, true, false)
+		fmt.Println(response)
+		if err != nil {
+			return err
+		}
+		deployer.Client.Namespace = namespace
+	}
+
+	return nil
+}
+
 func (deployer *ServiceDeployer) deployAssets() error {
 
 	if err := deployer.DeployPackages(); err != nil {
@@ -364,6 +426,7 @@ func (deployer *ServiceDeployer) deployAssets() error {
 }
 
 func (deployer *ServiceDeployer) DeployDependencies() error {
+
 	for _, pack := range deployer.Deployment.Packages {
 		for depName, depRecord := range pack.Dependencies {
 			output := wski18n.T(wski18n.ID_MSG_DEPENDENCY_DEPLOYING_X_name_X,

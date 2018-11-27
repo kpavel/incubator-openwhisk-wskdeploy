@@ -20,6 +20,7 @@ package parsers
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -27,6 +28,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v2"
+
+	"net/url"
 
 	"github.com/apache/incubator-openwhisk-client-go/whisk"
 	"github.com/apache/incubator-openwhisk-wskdeploy/conductor"
@@ -38,7 +41,6 @@ import (
 	"github.com/apache/incubator-openwhisk-wskdeploy/wskenv"
 	"github.com/apache/incubator-openwhisk-wskdeploy/wski18n"
 	"github.com/apache/incubator-openwhisk-wskdeploy/wskprint"
-	"net/url"
 )
 
 const (
@@ -1118,6 +1120,48 @@ func (dm *YAMLParser) ComposeApiRecordsFromAllPackages(client *whisk.Config, man
 		}
 	}
 	return requests, responses, nil
+}
+
+func (dm *YAMLParser) ComposePostDeployActions(client *whisk.Client, manifest *YAML) (map[string]interface{}, map[string]interface{}, error) {
+	var postDeployActions map[string]interface{} = make(map[string]interface{})
+	var postUnDeployActions map[string]interface{} = make(map[string]interface{})
+
+	//map[string]map[string]map[string]Parameter
+	for _, actions := range manifest.Post.DeployActions {
+
+		for actionPath, action := range actions {
+
+			fmt.Println("actionPath: " + actionPath)
+			fmt.Println(action["inputs"])
+
+			params := make(map[string]interface{})
+			for key, keyVal := range action["inputs"] {
+				params[key] = keyVal.Value
+			}
+
+			fmt.Println(params)
+			postDeployActions[actionPath] = params
+		}
+	}
+
+	for _, actions := range manifest.Post.UnDeployActions {
+
+		for actionPath, action := range actions {
+
+			fmt.Println("actionPath: " + actionPath)
+			fmt.Println(action["inputs"])
+
+			params := make(map[string]interface{})
+			for key, keyVal := range action["inputs"] {
+				params[key] = keyVal.Value
+			}
+
+			fmt.Println(params)
+			postUnDeployActions[actionPath] = params
+		}
+	}
+
+	return postDeployActions, postUnDeployActions, nil
 }
 
 /*
