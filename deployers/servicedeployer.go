@@ -323,7 +323,7 @@ func (deployer *ServiceDeployer) Deploy() error {
 }
 
 func (deployer *ServiceDeployer) InvokeActions(actions map[string]interface{}) error {
-	for actionPath, postDeployActionInputs := range deployer.Deployment.PreDeployActions {
+	for actionPath, postDeployActionInputs := range actions {
 		fmt.Println("----1----")
 		fmt.Println(actionPath)
 		fmt.Println("----2----")
