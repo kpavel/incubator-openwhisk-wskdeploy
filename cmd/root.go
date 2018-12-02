@@ -248,6 +248,12 @@ func Deploy(cmd *cobra.Command) error {
 			return err
 		}
 
+		// Invoke pre deploy actions and/or triggers
+		err = deployer.PreDeploy()
+		if err != nil {
+			return err
+		}
+
 		// Deploy all OW entities
 		err = deployer.Deploy()
 		if err != nil {

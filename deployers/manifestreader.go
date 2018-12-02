@@ -114,11 +114,6 @@ func (reader *ManifestReader) HandleYaml(manifestParser *parsers.YAMLParser, man
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
 	}
 
-	pdep_actions, pundep_actions, err := manifestParser.ComposePostDeployActions(reader.serviceDeployer.Client, manifest)
-	if err != nil {
-		return wskderrors.NewYAMLFileFormatError(manifestName, err)
-	}
-
 	err = reader.SetDependencies(deps)
 	if err != nil {
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
@@ -149,7 +144,17 @@ func (reader *ManifestReader) HandleYaml(manifestParser *parsers.YAMLParser, man
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
 	}
 
-	err = reader.SetPostActions(pdep_actions, pundep_actions)
+	pre_dep_actions, pre_undep_actions, err := manifestParser.ComposePrePostDeployActions(manifest.Pre)
+	if err != nil {
+		return wskderrors.NewYAMLFileFormatError(manifestName, err)
+	}
+
+	post_dep_actions, post_undep_actions, err := manifestParser.ComposePrePostDeployActions(manifest.Post)
+	if err != nil {
+		return wskderrors.NewYAMLFileFormatError(manifestName, err)
+	}
+
+	err = reader.SetPrePostActions(pre_dep_actions, pre_undep_actions, post_dep_actions, post_undep_actions)
 	if err != nil {
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
 	}
@@ -333,11 +338,14 @@ func (reader *ManifestReader) SetApis(ar []*whisk.ApiCreateRequest, responses ma
 	return nil
 }
 
-func (reader *ManifestReader) SetPostActions(postDeploy map[string]interface{}, postUndeploy map[string]interface{}) error {
+func (reader *ManifestReader) SetPrePostActions(preDeploy map[string]interface{}, preUndeploy map[string]interface{}, postDeploy map[string]interface{}, postUndeploy map[string]interface{}) error {
 	dep := reader.serviceDeployer
 
 	dep.mt.Lock()
 	defer dep.mt.Unlock()
+
+	dep.Deployment.PreDeployActions = preDeploy
+	dep.Deployment.PreUnDeployActions = preUndeploy
 
 	dep.Deployment.PostDeployActions = postDeploy
 	dep.Deployment.PostUnDeployActions = postUndeploy

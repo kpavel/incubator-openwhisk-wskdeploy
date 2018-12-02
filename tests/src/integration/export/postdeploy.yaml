@@ -16,6 +16,13 @@ packages:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
+pre:
+  deploy:
+    actions:
+      federated_package_1/action1:
+        inputs:
+          name: Pavel
+          place: PreDeployCheck
 post:
   deploy:
     actions:

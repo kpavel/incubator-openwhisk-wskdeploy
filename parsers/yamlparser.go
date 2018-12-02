@@ -239,7 +239,7 @@ type Project struct {
 	Inputs           map[string]Parameter `yaml: parameters`
 }
 
-type Post struct {
+type PrePost struct {
 	DeployActions   map[string]map[string]map[string]map[string]Parameter `yaml:"deploy,omitempty"`
 	UnDeployActions map[string]map[string]map[string]map[string]Parameter `yaml:"undeploy,omitempty"`
 }
@@ -248,7 +248,8 @@ type YAML struct {
 	Project  Project            `yaml:"project"`
 	Packages map[string]Package `yaml:"packages"`
 	Filepath string             //file path of the yaml file
-	Post     Post               `yaml:"post"`
+	Post     PrePost            `yaml:"post,omitempty"`
+	Pre      PrePost            `yaml:"pre,omitempty"`
 }
 
 type DisplayInputs struct {

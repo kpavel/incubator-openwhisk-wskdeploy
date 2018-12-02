@@ -50,6 +50,8 @@ type DeploymentProject struct {
 	Rules               map[string]*whisk.Rule
 	Apis                map[string]*whisk.ApiCreateRequest
 	ApiOptions          map[string]*whisk.ApiCreateRequestOptions
+	PreDeployActions    map[string]interface{}
+	PreUnDeployActions  map[string]interface{}
 	PostDeployActions   map[string]interface{}
 	PostUnDeployActions map[string]interface{}
 }
@@ -320,11 +322,8 @@ func (deployer *ServiceDeployer) Deploy() error {
 
 }
 
-func (deployer *ServiceDeployer) PostDeploy() error {
-	// iterate over all actions in postdeploy section
-	//
-
-	for actionPath, postDeployActionInputs := range deployer.Deployment.PostDeployActions {
+func (deployer *ServiceDeployer) InvokeActions(actions map[string]interface{}) error {
+	for actionPath, postDeployActionInputs := range deployer.Deployment.PreDeployActions {
 		fmt.Println("----1----")
 		fmt.Println(actionPath)
 		fmt.Println("----2----")
@@ -350,34 +349,16 @@ func (deployer *ServiceDeployer) PostDeploy() error {
 	return nil
 }
 
+func (deployer *ServiceDeployer) PreDeploy() error {
+	return deployer.InvokeActions(deployer.Deployment.PreDeployActions)
+}
+
+func (deployer *ServiceDeployer) PostDeploy() error {
+	return deployer.InvokeActions(deployer.Deployment.PostDeployActions)
+}
+
 func (deployer *ServiceDeployer) PostUnDeploy() error {
-	// iterate over all actions in postdeploy section
-	//
-
-	for actionPath, postUnDeployInputs := range deployer.Deployment.PostUnDeployActions {
-		fmt.Println("----1----")
-		fmt.Println(actionPath)
-		fmt.Println("----2----")
-		fmt.Println(postUnDeployInputs)
-		fmt.Println("----3----")
-
-		qName, err := utils.ParseQualifiedName(actionPath, deployer.ClientConfig.Namespace)
-		if err != nil {
-			return err
-		}
-
-		namespace := deployer.Client.Namespace
-		deployer.Client.Namespace = qName.Namespace
-
-		_, response, err := deployer.Client.Actions.Invoke(qName.EntityName, postUnDeployInputs, true, false)
-		fmt.Println(response)
-		if err != nil {
-			return err
-		}
-		deployer.Client.Namespace = namespace
-	}
-
-	return nil
+	return deployer.InvokeActions(deployer.Deployment.PostUnDeployActions)
 }
 
 func (deployer *ServiceDeployer) deployAssets() error {

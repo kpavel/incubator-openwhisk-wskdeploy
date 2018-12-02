@@ -1122,12 +1122,12 @@ func (dm *YAMLParser) ComposeApiRecordsFromAllPackages(client *whisk.Config, man
 	return requests, responses, nil
 }
 
-func (dm *YAMLParser) ComposePostDeployActions(client *whisk.Client, manifest *YAML) (map[string]interface{}, map[string]interface{}, error) {
-	var postDeployActions map[string]interface{} = make(map[string]interface{})
-	var postUnDeployActions map[string]interface{} = make(map[string]interface{})
+func (dm *YAMLParser) ComposePrePostDeployActions(prePost PrePost) (map[string]interface{}, map[string]interface{}, error) {
+	var deployActions map[string]interface{} = make(map[string]interface{})
+	var unDeployActions map[string]interface{} = make(map[string]interface{})
 
 	//map[string]map[string]map[string]Parameter
-	for _, actions := range manifest.Post.DeployActions {
+	for _, actions := range prePost.DeployActions {
 
 		for actionPath, action := range actions {
 
@@ -1140,11 +1140,11 @@ func (dm *YAMLParser) ComposePostDeployActions(client *whisk.Client, manifest *Y
 			}
 
 			fmt.Println(params)
-			postDeployActions[actionPath] = params
+			deployActions[actionPath] = params
 		}
 	}
 
-	for _, actions := range manifest.Post.UnDeployActions {
+	for _, actions := range prePost.UnDeployActions {
 
 		for actionPath, action := range actions {
 
@@ -1157,11 +1157,11 @@ func (dm *YAMLParser) ComposePostDeployActions(client *whisk.Client, manifest *Y
 			}
 
 			fmt.Println(params)
-			postUnDeployActions[actionPath] = params
+			unDeployActions[actionPath] = params
 		}
 	}
 
-	return postDeployActions, postUnDeployActions, nil
+	return deployActions, unDeployActions, nil
 }
 
 /*
