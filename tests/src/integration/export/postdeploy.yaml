@@ -8,31 +8,30 @@ packages:
       version: 1.0
       license: Apache-2.0
       actions:
-        greeting1:
+        greeting4:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
-        greeting2:
+        greeting5:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
 pre:
   deploy:
     actions:
-      federated_package_1/action1:
-        inputs:
-          name: Pavel
-          place: PreDeployCheck
+      /whisk.system/federation/getstate:
 post:
   deploy:
     actions:
-      federated_package_1/action1:
+      /whisk.system/federation/federate:
         inputs:
-          name: Pavel
-          place: HRL
+          projectName: posttest
+          action: create
+          followers: '[ "follower2" ]'
   undeploy:
     actions:
-      federated_package_1/action1:
+      /whisk.system/federation/federate:
         inputs:
-          name: Pavel
-          place: Tadiad
+          projectName: posttest
+          action: delete
+          followers: '[ "follower2" ]'
