@@ -8,11 +8,11 @@ packages:
       version: 1.0
       license: Apache-2.0
       actions:
-        greeting4:
+        greeting43:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
-        greeting5:
+        greeting53:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
