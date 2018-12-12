@@ -18,6 +18,8 @@
 package deployers
 
 import (
+	"fmt"
+
 	"github.com/apache/incubator-openwhisk-client-go/whisk"
 	"github.com/apache/incubator-openwhisk-wskdeploy/parsers"
 	"github.com/apache/incubator-openwhisk-wskdeploy/utils"
@@ -72,6 +74,10 @@ func (reader *DeploymentReader) BindAssets() error {
 		return err
 	}
 	if err := reader.bindTriggerInputsAndAnnotations(paramsCLI); err != nil {
+		return err
+	}
+
+	if err := reader.bindPostDeployInputsAndAnnotations(paramsCLI); err != nil {
 		return err
 	}
 
@@ -277,6 +283,25 @@ func (reader *DeploymentReader) bindActionInputsAndAnnotations(paramsCLI interfa
 			}
 		}
 	}
+	return nil
+}
+
+func (reader *DeploymentReader) bindPostDeployInputsAndAnnotations(paramsCLI interface{}) error {
+
+	// retrieve "post deployment" list from depl. file; either at top-level or under "Project" schema
+	for _, actions := range reader.DeploymentDescriptor.Post.DeployActions {
+		for actionPath, action := range actions {
+			if wskAction, exists := reader.serviceDeployer.Deployment.PostDeployActions[actionPath]; exists {
+				displayEntityFoundInDeploymentTrace(parsers.YAML_KEY_ACTION, actionPath)
+				for key, keyVal := range action["inputs"] {
+					wskAction.(map[string]interface{})[key] = keyVal.Value
+				}
+			} else {
+				displayEntityNotFoundInDeploymentWarning(parsers.YAML_KEY_ACTION, actionPath)
+			}
+		}
+	}
+
 	return nil
 }
 
