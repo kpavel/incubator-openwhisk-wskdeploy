@@ -344,11 +344,11 @@ func (reader *ManifestReader) SetPrePostActions(preDeploy map[string]interface{}
 	dep.mt.Lock()
 	defer dep.mt.Unlock()
 
-	dep.Deployment.PreDeployActions = preDeploy
-	dep.Deployment.PreUnDeployActions = preUndeploy
+	dep.Deployment.PrePostActions.PreDeployActions = preDeploy
+	dep.Deployment.PrePostActions.PreUnDeployActions = preUndeploy
 
-	dep.Deployment.PostDeployActions = postDeploy
-	dep.Deployment.PostUnDeployActions = postUndeploy
+	dep.Deployment.PrePostActions.PostDeployActions = postDeploy
+	dep.Deployment.PrePostActions.PostUnDeployActions = postUndeploy
 
 	return nil
 }

@@ -45,11 +45,15 @@ const (
 )
 
 type DeploymentProject struct {
-	Packages            map[string]*DeploymentPackage
-	Triggers            map[string]*whisk.Trigger
-	Rules               map[string]*whisk.Rule
-	Apis                map[string]*whisk.ApiCreateRequest
-	ApiOptions          map[string]*whisk.ApiCreateRequestOptions
+	Packages       map[string]*DeploymentPackage
+	Triggers       map[string]*whisk.Trigger
+	Rules          map[string]*whisk.Rule
+	Apis           map[string]*whisk.ApiCreateRequest
+	ApiOptions     map[string]*whisk.ApiCreateRequestOptions
+	PrePostActions *PrePost
+}
+
+type PrePost struct {
 	PreDeployActions    map[string]interface{}
 	PreUnDeployActions  map[string]interface{}
 	PostDeployActions   map[string]interface{}
@@ -63,6 +67,7 @@ func NewDeploymentProject() *DeploymentProject {
 	dep.Rules = make(map[string]*whisk.Rule)
 	dep.Apis = make(map[string]*whisk.ApiCreateRequest)
 	dep.ApiOptions = make(map[string]*whisk.ApiCreateRequestOptions)
+	dep.PrePostActions = new(PrePost)
 	return &dep
 }
 
@@ -350,15 +355,15 @@ func (deployer *ServiceDeployer) InvokeActions(actions map[string]interface{}) e
 }
 
 func (deployer *ServiceDeployer) PreDeploy() error {
-	return deployer.InvokeActions(deployer.Deployment.PreDeployActions)
+	return deployer.InvokeActions(deployer.Deployment.PrePostActions.PreDeployActions)
 }
 
 func (deployer *ServiceDeployer) PostDeploy() error {
-	return deployer.InvokeActions(deployer.Deployment.PostDeployActions)
+	return deployer.InvokeActions(deployer.Deployment.PrePostActions.PostDeployActions)
 }
 
 func (deployer *ServiceDeployer) PostUnDeploy() error {
-	return deployer.InvokeActions(deployer.Deployment.PostUnDeployActions)
+	return deployer.InvokeActions(deployer.Deployment.PrePostActions.PostUnDeployActions)
 }
 
 func (deployer *ServiceDeployer) deployAssets() error {
