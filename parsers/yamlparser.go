@@ -118,6 +118,14 @@ type Action struct {
 	Exclude     []string               `yaml:"exclude,omitempty"`
 }
 
+// Action is mapped to wsk.Action.*
+// Used in both manifest and deployment files
+type PostDeployAction struct {
+	Name     string
+	Location string               `yaml:"location,omitempty"`
+	Inputs   map[string]Parameter `yaml:"inputs,omitempty"`
+}
+
 type Limits struct {
 	Timeout               *int `yaml:"timeout,omitempty"`               //in ms, [100 ms,300000ms]
 	Memory                *int `yaml:"memorySize,omitempty"`            //in MB, [128 MB,512 MB]
@@ -231,10 +239,17 @@ type Project struct {
 	Inputs           map[string]Parameter `yaml: parameters`
 }
 
+type PrePost struct {
+	DeployActions   map[string]map[string]map[string]map[string]Parameter `yaml:"deploy,omitempty"`
+	UnDeployActions map[string]map[string]map[string]map[string]Parameter `yaml:"undeploy,omitempty"`
+}
+
 type YAML struct {
 	Project  Project            `yaml:"project"`
 	Packages map[string]Package `yaml:"packages"`
 	Filepath string             //file path of the yaml file
+	Post     PrePost            `yaml:"post,omitempty"`
+	Pre      PrePost            `yaml:"pre,omitempty"`
 }
 
 type DisplayInputs struct {

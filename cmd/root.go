@@ -248,8 +248,20 @@ func Deploy(cmd *cobra.Command) error {
 			return err
 		}
 
+		// Invoke pre deploy actions and/or triggers
+		err = deployer.PreDeploy()
+		if err != nil {
+			return err
+		}
+
 		// Deploy all OW entities
 		err = deployer.Deploy()
+		if err != nil {
+			return err
+		}
+
+		// Invoke post deploy actions and/or triggers
+		err = deployer.PostDeploy()
 		if err != nil {
 			return err
 		} else {
@@ -357,6 +369,12 @@ func Undeploy(cmd *cobra.Command) error {
 		}
 
 		err = deployer.UnDeploy(verifiedPlan)
+		if err != nil {
+			return err
+		}
+
+		// Invoke post undeploy actions and/or triggers
+		err = deployer.PostUnDeploy()
 		if err != nil {
 			return err
 		} else {

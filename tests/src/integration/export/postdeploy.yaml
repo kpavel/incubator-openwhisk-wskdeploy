@@ -1,0 +1,24 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+
+project:
+  name: posttest
+packages:
+  testpostdeploy:
+      version: 1.0
+      license: Apache-2.0
+      actions:
+        greeting43:
+          version: 1.0
+          function: src/greeting.js
+          runtime: nodejs:6
+        greeting53:
+          version: 1.0
+          function: src/greeting.js
+          runtime: nodejs:6
+post:
+  deploy:
+    actions:
+      /_/testpostdeploy/greeting43:
+        inputs:
+          name: Test

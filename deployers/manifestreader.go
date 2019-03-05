@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"fmt"
+
 	"github.com/apache/incubator-openwhisk-client-go/whisk"
 	"github.com/apache/incubator-openwhisk-wskdeploy/dependencies"
 	"github.com/apache/incubator-openwhisk-wskdeploy/parsers"
@@ -139,6 +140,21 @@ func (reader *ManifestReader) HandleYaml(manifestParser *parsers.YAMLParser, man
 	}
 
 	err = reader.SetApis(apis, responses)
+	if err != nil {
+		return wskderrors.NewYAMLFileFormatError(manifestName, err)
+	}
+
+	pre_dep_actions, pre_undep_actions, err := manifestParser.ComposePrePostDeployActions(manifest.Pre)
+	if err != nil {
+		return wskderrors.NewYAMLFileFormatError(manifestName, err)
+	}
+
+	post_dep_actions, post_undep_actions, err := manifestParser.ComposePrePostDeployActions(manifest.Post)
+	if err != nil {
+		return wskderrors.NewYAMLFileFormatError(manifestName, err)
+	}
+
+	err = reader.SetPrePostActions(pre_dep_actions, pre_undep_actions, post_dep_actions, post_undep_actions)
 	if err != nil {
 		return wskderrors.NewYAMLFileFormatError(manifestName, err)
 	}
@@ -318,6 +334,21 @@ func (reader *ManifestReader) SetApis(ar []*whisk.ApiCreateRequest, responses ma
 	for apiPath, response := range responses {
 		dep.Deployment.ApiOptions[apiPath] = response
 	}
+
+	return nil
+}
+
+func (reader *ManifestReader) SetPrePostActions(preDeploy map[string]interface{}, preUndeploy map[string]interface{}, postDeploy map[string]interface{}, postUndeploy map[string]interface{}) error {
+	dep := reader.serviceDeployer
+
+	dep.mt.Lock()
+	defer dep.mt.Unlock()
+
+	dep.Deployment.PrePostActions.PreDeployActions = preDeploy
+	dep.Deployment.PrePostActions.PreUnDeployActions = preUndeploy
+
+	dep.Deployment.PrePostActions.PostDeployActions = postDeploy
+	dep.Deployment.PrePostActions.PostUnDeployActions = postUndeploy
 
 	return nil
 }

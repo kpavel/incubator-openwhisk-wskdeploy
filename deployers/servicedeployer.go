@@ -45,11 +45,19 @@ const (
 )
 
 type DeploymentProject struct {
-	Packages   map[string]*DeploymentPackage
-	Triggers   map[string]*whisk.Trigger
-	Rules      map[string]*whisk.Rule
-	Apis       map[string]*whisk.ApiCreateRequest
-	ApiOptions map[string]*whisk.ApiCreateRequestOptions
+	Packages       map[string]*DeploymentPackage
+	Triggers       map[string]*whisk.Trigger
+	Rules          map[string]*whisk.Rule
+	Apis           map[string]*whisk.ApiCreateRequest
+	ApiOptions     map[string]*whisk.ApiCreateRequestOptions
+	PrePostActions *PrePost
+}
+
+type PrePost struct {
+	PreDeployActions    map[string]interface{}
+	PreUnDeployActions  map[string]interface{}
+	PostDeployActions   map[string]interface{}
+	PostUnDeployActions map[string]interface{}
 }
 
 func NewDeploymentProject() *DeploymentProject {
@@ -59,6 +67,7 @@ func NewDeploymentProject() *DeploymentProject {
 	dep.Rules = make(map[string]*whisk.Rule)
 	dep.Apis = make(map[string]*whisk.ApiCreateRequest)
 	dep.ApiOptions = make(map[string]*whisk.ApiCreateRequestOptions)
+	dep.PrePostActions = new(PrePost)
 	return &dep
 }
 
@@ -318,6 +327,39 @@ func (deployer *ServiceDeployer) Deploy() error {
 
 }
 
+func (deployer *ServiceDeployer) InvokeActions(actions map[string]interface{}) error {
+	for actionPath, postDeployActionInputs := range actions {
+
+		qName, err := utils.ParseQualifiedName(actionPath, deployer.ClientConfig.Namespace)
+		if err != nil {
+			return err
+		}
+
+		namespace := deployer.Client.Namespace
+		deployer.Client.Namespace = qName.Namespace
+
+		_, _, err = deployer.Client.Actions.Invoke(qName.EntityName, postDeployActionInputs, true, false)
+		if err != nil {
+			return err
+		}
+		deployer.Client.Namespace = namespace
+	}
+
+	return nil
+}
+
+func (deployer *ServiceDeployer) PreDeploy() error {
+	return deployer.InvokeActions(deployer.Deployment.PrePostActions.PreDeployActions)
+}
+
+func (deployer *ServiceDeployer) PostDeploy() error {
+	return deployer.InvokeActions(deployer.Deployment.PrePostActions.PostDeployActions)
+}
+
+func (deployer *ServiceDeployer) PostUnDeploy() error {
+	return deployer.InvokeActions(deployer.Deployment.PrePostActions.PostUnDeployActions)
+}
+
 func (deployer *ServiceDeployer) deployAssets() error {
 
 	if err := deployer.DeployPackages(); err != nil {
@@ -364,6 +406,7 @@ func (deployer *ServiceDeployer) deployAssets() error {
 }
 
 func (deployer *ServiceDeployer) DeployDependencies() error {
+
 	for _, pack := range deployer.Deployment.Packages {
 		for depName, depRecord := range pack.Dependencies {
 			output := wski18n.T(wski18n.ID_MSG_DEPENDENCY_DEPLOYING_X_name_X,

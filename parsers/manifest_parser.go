@@ -28,6 +28,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"net/url"
+
 	"github.com/apache/incubator-openwhisk-client-go/whisk"
 	"github.com/apache/incubator-openwhisk-wskdeploy/conductor"
 	"github.com/apache/incubator-openwhisk-wskdeploy/dependencies"
@@ -38,7 +40,6 @@ import (
 	"github.com/apache/incubator-openwhisk-wskdeploy/wskenv"
 	"github.com/apache/incubator-openwhisk-wskdeploy/wski18n"
 	"github.com/apache/incubator-openwhisk-wskdeploy/wskprint"
-	"net/url"
 )
 
 const (
@@ -1118,6 +1119,36 @@ func (dm *YAMLParser) ComposeApiRecordsFromAllPackages(client *whisk.Config, man
 		}
 	}
 	return requests, responses, nil
+}
+
+func (dm *YAMLParser) ComposePrePostDeployActions(prePost PrePost) (map[string]interface{}, map[string]interface{}, error) {
+	var deployActions map[string]interface{} = make(map[string]interface{})
+	var unDeployActions map[string]interface{} = make(map[string]interface{})
+
+	//map[string]map[string]map[string]Parameter
+	for _, actions := range prePost.DeployActions {
+
+		for actionPath, action := range actions {
+			params := make(map[string]interface{})
+			for key, keyVal := range action["inputs"] {
+				params[key] = keyVal.Value
+			}
+			deployActions[actionPath] = params
+		}
+	}
+
+	for _, actions := range prePost.UnDeployActions {
+
+		for actionPath, action := range actions {
+			params := make(map[string]interface{})
+			for key, keyVal := range action["inputs"] {
+				params[key] = keyVal.Value
+			}
+			unDeployActions[actionPath] = params
+		}
+	}
+
+	return deployActions, unDeployActions, nil
 }
 
 /*

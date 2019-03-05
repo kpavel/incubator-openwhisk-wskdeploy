@@ -75,6 +75,10 @@ func (reader *DeploymentReader) BindAssets() error {
 		return err
 	}
 
+	if err := reader.bindPrePostActionsInputsAndAnnotations(paramsCLI); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -277,6 +281,67 @@ func (reader *DeploymentReader) bindActionInputsAndAnnotations(paramsCLI interfa
 			}
 		}
 	}
+	return nil
+}
+
+func (reader *DeploymentReader) bindPrePostActionsInputsAndAnnotations(paramsCLI interface{}) error {
+
+	// retrieve "post deployment" list from depl. file
+	for _, actions := range reader.DeploymentDescriptor.Post.DeployActions {
+		for actionPath, action := range actions {
+			if wskAction, exists := reader.serviceDeployer.Deployment.PrePostActions.PostDeployActions[actionPath]; exists {
+				displayEntityFoundInDeploymentTrace(parsers.YAML_KEY_ACTION, actionPath)
+				for key, keyVal := range action["inputs"] {
+					wskAction.(map[string]interface{})[key] = keyVal.Value
+				}
+			} else {
+				displayEntityNotFoundInDeploymentWarning(parsers.YAML_KEY_ACTION, actionPath)
+			}
+		}
+	}
+
+	// retrieve "post deployment" list from depl. file
+	for _, actions := range reader.DeploymentDescriptor.Post.UnDeployActions {
+		for actionPath, action := range actions {
+			if wskAction, exists := reader.serviceDeployer.Deployment.PrePostActions.PostUnDeployActions[actionPath]; exists {
+				displayEntityFoundInDeploymentTrace(parsers.YAML_KEY_ACTION, actionPath)
+				for key, keyVal := range action["inputs"] {
+					wskAction.(map[string]interface{})[key] = keyVal.Value
+				}
+			} else {
+				displayEntityNotFoundInDeploymentWarning(parsers.YAML_KEY_ACTION, actionPath)
+			}
+		}
+	}
+
+	// retrieve "post deployment" list from depl. file
+	for _, actions := range reader.DeploymentDescriptor.Pre.DeployActions {
+		for actionPath, action := range actions {
+			if wskAction, exists := reader.serviceDeployer.Deployment.PrePostActions.PreDeployActions[actionPath]; exists {
+				displayEntityFoundInDeploymentTrace(parsers.YAML_KEY_ACTION, actionPath)
+				for key, keyVal := range action["inputs"] {
+					wskAction.(map[string]interface{})[key] = keyVal.Value
+				}
+			} else {
+				displayEntityNotFoundInDeploymentWarning(parsers.YAML_KEY_ACTION, actionPath)
+			}
+		}
+	}
+
+	// retrieve "post deployment" list from depl. file
+	for _, actions := range reader.DeploymentDescriptor.Pre.UnDeployActions {
+		for actionPath, action := range actions {
+			if wskAction, exists := reader.serviceDeployer.Deployment.PrePostActions.PreUnDeployActions[actionPath]; exists {
+				displayEntityFoundInDeploymentTrace(parsers.YAML_KEY_ACTION, actionPath)
+				for key, keyVal := range action["inputs"] {
+					wskAction.(map[string]interface{})[key] = keyVal.Value
+				}
+			} else {
+				displayEntityNotFoundInDeploymentWarning(parsers.YAML_KEY_ACTION, actionPath)
+			}
+		}
+	}
+
 	return nil
 }
 

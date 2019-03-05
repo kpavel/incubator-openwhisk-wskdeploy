@@ -1,0 +1,18 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+
+project:
+    name: postdeploy
+    packages:
+        testpostdeploy:
+            actions:
+                greeting43:
+                    inputs:
+                        name: Amy
+                        place: Pupkin
+post:
+  deploy:
+    actions:
+      /_/testpostdeploy/greeting43:
+        inputs:
+          name: Banabas
