@@ -15,4 +15,4 @@ post:
     actions:
       /_/testpostdeploy/greeting43:
         inputs:
-          name: Banaba
+          name: Banabas

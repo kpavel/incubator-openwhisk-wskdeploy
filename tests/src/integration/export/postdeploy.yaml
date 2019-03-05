@@ -16,22 +16,9 @@ packages:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
-pre:
-  deploy:
-    actions:
-      /whisk.system/federation/getstate:
 post:
   deploy:
     actions:
-      /whisk.system/federation/federate:
+      /_/testpostdeploy/greeting43:
         inputs:
-          projectName: posttest
-          action: create
-          followers: '[ "follower2" ]'
-  undeploy:
-    actions:
-      /whisk.system/federation/federate:
-        inputs:
-          projectName: posttest
-          action: delete
-          followers: '[ "follower2" ]'
+          name: Test
