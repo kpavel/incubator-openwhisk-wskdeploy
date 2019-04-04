@@ -8,17 +8,26 @@ packages:
       version: 1.0
       license: Apache-2.0
       actions:
-        greeting43:
+        hello-postdeploy-1:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
-        greeting53:
+        hello-postdeploy-2:
           version: 1.0
           function: src/greeting.js
           runtime: nodejs:6
 post:
   deploy:
     actions:
-      /_/testpostdeploy/greeting43:
+      federation/federate:
         inputs:
-          name: Test
+          projectName: testpostdeploy
+          event: createProject
+          followers: '[ "follower1" ]'
+  undeploy:
+    actions:
+      federation/federate:
+        inputs:
+          projectName: testpostdeploy
+          event: deleteProject
+          followers: '[ "follower1" ]'
