@@ -21,13 +21,11 @@ post:
     actions:
       federation/federate:
         inputs:
-          projectName: testpostdeploy
           event: createProject
           followers: '[ "follower1" ]'
   undeploy:
     actions:
       federation/federate:
         inputs:
-          projectName: testpostdeploy
           event: deleteProject
           followers: '[ "follower1" ]'
