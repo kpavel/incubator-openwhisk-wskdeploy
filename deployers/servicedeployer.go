@@ -257,6 +257,7 @@ func (deployer *ServiceDeployer) ConstructUnDeploymentPlan() (*DeploymentProject
 		return deployer.Deployment, err
 	}
 
+	deployer.ProjectName = utils.Flags.ProjectName
 	manifestReader.InitPackages(manifestParser, manifest, whisk.KeyValue{})
 
 	// process manifest file
@@ -329,17 +330,8 @@ func (deployer *ServiceDeployer) Deploy() error {
 
 func (deployer *ServiceDeployer) InvokeActions(actions map[string]interface{}) error {
 	for actionPath, postDeployActionInputs := range actions {
-//		fmt.Println("----1----")
-//		fmt.Println(actionPath)
-//		fmt.Println("----2----")
-//		fmt.Println(postDeployActionInputs)
-//		fmt.Println("----3----")
-//		fmt.Println(deployer.ProjectName)
-//		fmt.Println("----4----")
                 pd := postDeployActionInputs.(map[string]interface{})
                 pd["projectName"] = deployer.ProjectName
- // 		fmt.Println(pd)
-//		fmt.Println("----5----")
 
 		qName, err := utils.ParseQualifiedName(actionPath, deployer.ClientConfig.Namespace)
 		if err != nil {

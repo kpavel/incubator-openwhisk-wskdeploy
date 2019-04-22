@@ -310,8 +310,6 @@ func Undeploy(cmd *cobra.Command) error {
 		if err != nil {
 			return err
 		}
-
-		return nil
 	}
 
 	project_Path := strings.TrimSpace(utils.Flags.ProjectPath)
